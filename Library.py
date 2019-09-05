@@ -10,7 +10,7 @@
 Material = {
     'Teflon':{  # http://arxiv.org/abs/1703.09144
         'Nitrogen':{'Diffusion Constant': 15.1E-8, 'Solubility': 0.107, 'Activation Energy': 0.17},
-        'Oxygen':{'Diffusion Constant': 31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.17},
+        'Oxygen':{'Diffusion Constant': 4*31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.17}, #modified
         'Krypton':{'Diffusion Constant': 5.6E-8, 'Solubility': 0.58, 'Activation Energy': 0.17},
         'Xenon':{'Diffusion Constant': 0.8E-8, 'Solubility': 0.89, 'Activation Energy': 0.17},
         'Argon':{'Diffusion Constant': 16.8E-8, 'Solubility': 0.088, 'Activation Energy': 0.17},
@@ -41,7 +41,7 @@ System = {
     'EXO-200':{
         'Xenon Mass': 200000,
         'Teflon':{
-                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15} # only inner surface in Area
+                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15}
         }
     },
     'nEXO':{
@@ -59,8 +59,8 @@ System = {
     'YLXPS':{
         'Xenon Mass': 2170,
         'Teflon':{
-                'EXO-Teflon': {'Volume': 5.3E-3, 'Area': pow(5.5*2.54,2)*2, 'Thickness': 0.15},
-                'Stock-Teflon': {'Volume': 0.01639, 'Area': pow(4*2.54,2)*2, 'Thickness': .635},
+                'EXO-Teflon': {'Volume': 5.3E-3, 'Area': pow(5.5*2.54, 2)*2, 'Thickness': 0.15},
+                'Stock-Teflon': {'Volume': 0.01639, 'Area': pow(4*2.54, 2)*2, 'Thickness': 0.635},
                 'Columbia-Teflon': {'Volume': 285.08, 'Area': (17.8*15.4)*2, 'Thickness': 1.04}
         }
     },

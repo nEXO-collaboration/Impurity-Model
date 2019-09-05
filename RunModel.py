@@ -10,12 +10,11 @@ colors = ['#1f78b4', '#e66101', '#33a02c', '#984ea3', 'black']
 
 
 class System(): 
-    def __init__(self, SystemName, Material, Solute, Dimension):
-        self.Name = SystemName
+    def __init__(self, Setup, Material, Solute, Version):
+        self.Name = Setup
         self.Material = Material
         self.Solute = Solute
-        self.Dimension = Dimension
-        self.XeMass = Lib.System.get(SystemName).get('Xenon Mass')
+        self.Version = Version
         
         self.Diffusion = Lib.Material.get(Material).get(Solute).get('Diffusion Constant')
         self.Solubility = Lib.Material.get(Material).get(Solute).get('Solubility')
@@ -23,14 +22,14 @@ class System():
         self.Abundance =  Lib.Gas.get(Solute).get('Abundance in Air')
         self.MolarMass =  Lib.Gas.get(Solute).get('Molar Mass')
 
-        self.Volume = Lib.System.get(SystemName).get(Material).get(Dimension).get('Volume')
-        self.Area = Lib.System.get(SystemName).get(Material).get(Dimension).get('Area')
-        self.Thickness = Lib.System.get(SystemName).get(Material).get(Dimension).get('Thickness')
+        self.XeMass = Lib.System.get(Setup).get('Xenon Mass')
+        self.Volume = Lib.System.get(Setup).get(Material).get(Version).get('Volume')
+        self.Area = Lib.System.get(Setup).get(Material).get(Version).get('Area')
+        self.Thickness = Lib.System.get(Setup).get(Material).get(Version).get('Thickness')
 
     def Print(self):
         Attributes = vars(self)
-        print(', '.join("%s: %s" % item for item in Attributes.items()))
-
+        print('\n '.join("%s: %s" % item for item in Attributes.items()))
 
 def GetTimeStamps(Points, Spacing, TimeScale): 
     X = []
@@ -51,13 +50,14 @@ def PlotImpuritiesVsTime(Data):
     ax.grid(b=True, which='minor', color='grey', linestyle=':')
     ax.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax.xaxis.set_major_locator(MultipleLocator(10))
-    ax.yaxis.set_major_locator(LogLocator(base=10,numticks=12,))
+    ax.yaxis.set_major_locator(LogLocator(base=10,numticks=24))
+
     for jj,data in enumerate(Data):
         for ii,(X,Y) in enumerate(zip(data.Time, data.Impurities)):
             plt.plot(X, Y, label=data.Labels[ii], color=colors[jj], linewidth=2.)
 
     plt.xlim(np.min(Data[0].Time[0]), np.max(Data[0].Time[-1]))
-    # plt.ylim(ymin=1E12,ymax=1E20)
+    plt.ylim(ymin=1E10,ymax=1E24)
     ax.legend(loc='upper right', fontsize=14)
     fig.tight_layout()
 
@@ -74,32 +74,58 @@ def PlotFlowRateVsTime(Data):
     ax.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax.xaxis.set_major_locator(MultipleLocator(10))
     ax.yaxis.set_major_locator(LogLocator(base=10,numticks=12,))
+
     for jj,data in enumerate(Data):
         for ii,(X,Y) in enumerate(zip(data.Time, data.FlowRate)):
             plt.plot(X, Y, label=data.Labels[ii], color=colors[jj], linewidth=2.)
 
     plt.xlim(np.min(Data[0].Time[0]), np.max(Data[0].Time[-1]))
-    # plt.ylim(ymin=1E-12)
+    plt.ylim(ymin=1E-12)
     ax.legend(loc='upper right', fontsize=14)
     fig.tight_layout()
 
 if __name__ == '__main__':
 
-    EXO = System('YLXPS', 'Teflon', 'Oxygen', 'EXO-Teflon')
-    EXO2 = System('YLXPS', 'Teflon', 'Oxygen', 'Stock-Teflon')
-    EXO3 = System('YLXPS', 'Teflon', 'Oxygen', 'Columbia-Teflon')
+    # Define parameters for each model. Details about which options are available are in Library.py
+    # Units for all parameters are defined in Library.py.
+    S1 = System(Setup='YLXPS', Material='Teflon', Solute='Oxygen', Version='EXO-Teflon')
+    S2 = System(Setup='YLXPS', Material='Teflon', Solute='Oxygen', Version='Stock-Teflon')
+    S3 = System(Setup='YLXPS', Material='Teflon', Solute='Oxygen', Version='Columbia-Teflon')
 
-    Systems = [EXO,EXO2,EXO3]
+    # Bundle above defined models together to do calculations for all of them 
+    Systems = [S1,S2,S3]
     Labels = [['EXO-200 Teflon'], ['Stock Room Teflon'], ['Columbia Setup Teflon']]
 
+    # Calculate impurity concentration and outgassing rate for each model 
     for ii,System in enumerate(Systems): 
-        System.Temp = [295,295]       
+        # This will output all important parameters that have been imported into each model
+        System.Print()
+
+        # Define the different temperatures for which to calculate outgassing
+        System.Temp = [295,295]   
+
+        # Calculate the diffusion constants for the above defined temperatures using the Arrhenius equation
+        System.DiffConstants = Out.GetDiffTemp(System, Temperatures=System.Temp)    
+
+        # Get the initial number of impurities from model parameters. Can define '#', 'ppm,ppb,ppt' or 'Mass' for units 
         System.InitialImpurities = Out.GetInitialImpurities(System, '#')
-        System.DiffConstants = Out.GetDiffTemp(System, Temperatures=System.Temp)
+
+        # Forward above defined labels, that will be later used for the plot legend.
         System.Labels = Labels[ii]
+
+        # Sets time regions for the above defined temperature values
+        # Points goes from 0 to first value, first value to second value and so on. Ex: [0,10,15] gives two regions, 0-10 and 10-15
+        # TimeScale defines in which units to plot the x-Axis later.
+        # Spacing is the 
         System.Time = GetTimeStamps(Points=[0,100], Spacing=0.1, TimeScale='Hours')
+
+        # Calculate the number of impurities left in the sample vs time by using the solution to the diffusion equation.
         System.Impurities = Out.GetImpuritiesVsTime(Data=System, TimeScale='Hours')
+
+        # Calculate the outgassing rate vs time using Fick's 1st law 
         System.FlowRate = Out.GetFlowRateVsTime(Data=System, Units='mBar Liter', TimeScale='Hours')
+
+    # Plotting the impurities and outgassing rates for all above defined models and saving the plots. 
     PlotImpuritiesVsTime(Systems)
     plt.savefig('impurities.pdf')
     PlotFlowRateVsTime(Systems)
