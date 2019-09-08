@@ -39,7 +39,7 @@ def GetTimeStamps(Points, Spacing, TimeScale):
         X.append(np.linspace(Points[ii], Points[ii+1], int((Points[ii+1] - Points[ii]) / Spacing + 1)))
     return np.array(X)
 
-def PlotImpuritiesVsTime(Data):
+def PlotImpuritiesVsTime(Data, XRange=0, YRange=0, XTicks=0)):
     fig = plt.figure(figsize=(10,7))
     ax = fig.gca()
     plt.xlabel('Time [hours]', fontsize=16)
@@ -49,15 +49,28 @@ def PlotImpuritiesVsTime(Data):
     plt.yticks(fontsize = 16)
     ax.grid(b=True, which='major', color='grey', linestyle='--')
     ax.grid(b=True, which='minor', color='grey', linestyle=':')
-    ax.xaxis.set_minor_locator(AutoMinorLocator(5))
-    ax.xaxis.set_major_locator(MultipleLocator(10))
 
     for jj, data in enumerate(Data):
         for ii,(X,Y) in enumerate(zip(data.Time, data.Impurities)):
             plt.plot(X, Y, label=data.Labels[ii], color=colors[jj], linewidth=2.0, linestyle=Linestyles[ii])
 
-    plt.xlim(np.min(Data[0].Time[0]), np.max(Data[0].Time[-1]))
-    plt.ylim(ymin=1E10,ymax=1E24)
+    if XTicks == 0:
+        XTicks = int(np.max([np.max(x.Time) for x in Data ])/10)
+    else:
+        XTicks = XTicks 
+    ax.xaxis.set_minor_locator(AutoMinorLocator(5))
+    ax.xaxis.set_major_locator(MultipleLocator(XTicks))
+
+    YMaxExp = np.max([np.max(x.FlowRate) for x in Data ])
+    YMaxExp = math.ceil(math.log10(YMaxExp))
+    if XRange == 0:
+        plt.xlim(np.min(Data[0].Time[0]), np.max(Data[0].Time[-1]))
+    else:
+        plt.xlim(XRange[0], XRange[1])
+    if YRange == 0:
+        plt.ylim(ymin=1E10, ymax = 1*10**YMaxExp)
+    else:
+        plt.ylim(YRange[0], YRange[1])
     ax.legend(loc='lower right', fontsize=10)
     fig.tight_layout()
 
@@ -76,17 +89,15 @@ def PlotFlowRateVsTime(Data, XRange=0, YRange=0, XTicks=0):
         for ii,(X,Y) in enumerate(zip(data.Time, data.FlowRate)):
             plt.plot(X, Y, label=data.Labels[ii], color=colors[jj], linewidth=2.0, linestyle=Linestyles[ii])
 
-    YMaxExp = np.max([np.max(x.FlowRate) for x in Data ])
-    YMaxExp = math.ceil(math.log10(YMaxExp))
-
     if XTicks == 0:
         XTicks = int(np.max([np.max(x.Time) for x in Data ])/10)
     else:
         XTicks = XTicks 
-    
     ax.xaxis.set_minor_locator(AutoMinorLocator(5))
     ax.xaxis.set_major_locator(MultipleLocator(XTicks))
 
+    YMaxExp = np.max([np.max(x.FlowRate) for x in Data ])
+    YMaxExp = math.ceil(math.log10(YMaxExp))
     if XRange == 0:
         plt.xlim(np.min(Data[0].Time[0]), np.max(Data[0].Time[-1]))
     else:
@@ -95,6 +106,7 @@ def PlotFlowRateVsTime(Data, XRange=0, YRange=0, XTicks=0):
         plt.ylim(ymin=1E-22, ymax = 1*10**YMaxExp)
     else:
         plt.ylim(YRange[0], YRange[1])
+
     ax.legend(loc='lower right', fontsize=10)
     fig.tight_layout()
 
