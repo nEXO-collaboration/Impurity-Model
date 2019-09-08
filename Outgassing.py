@@ -15,6 +15,10 @@ def GetImpuritiesVsTime(Data, TimeScale='Seconds'):
     Impurities = []
     InitialImpurities = Data.InitialImpurities
     for ii, (Time, DiffConstant) in enumerate(zip(Data.Time, Data.DiffConstants)): 
+        if ii==0:
+            pass 
+        else:
+            Time = Time - np.max(Data.Time[ii-1])
         DiffConstant = DiffConstant * DoTimeConversion(TimeScale)
         Y = SolveDiffusionEquation(Time, DiffConstant, Data.Thickness, InitialImpurities)
         Impurities.append(Y)
@@ -35,7 +39,11 @@ def SolveDiffusionEquation(Time, Diff, Thickness, Conc):
 def GetFlowRateVsTime(Data, Units='#', TimeScale='Seconds'): 
     FlowRate = []
     InitialConcentration = [x[0]/(Data.Volume*1000) for x in Data.Impurities]
-    for ii, (Time, DiffConstant) in enumerate(zip(Data.Time, Data.DiffConstants)): 
+    for ii, (Time, DiffConstant) in enumerate(zip(Data.Time, Data.DiffConstants)):
+        if ii==0:
+            pass 
+        else:
+            Time = Time - np.max(Data.Time[ii-1])
         DiffConstant = DiffConstant * DoTimeConversion(TimeScale)
         Y = GetFlowRate(Time, DiffConstant, Data.Thickness, InitialConcentration[ii], Data.Area)
         FlowRate.append(Y)
