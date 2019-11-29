@@ -10,11 +10,14 @@
 Material = {
     'Teflon':{  # http://arxiv.org/abs/1703.09144
         'Nitrogen':{'Diffusion Constant': 15.1E-8, 'Solubility': 0.107, 'Activation Energy': 0.17},
-        'Oxygen':{'Diffusion Constant': 4*31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.17}, #modified
+        'Oxygen':{'Diffusion Constant': 31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.17}, 
         'Krypton':{'Diffusion Constant': 5.6E-8, 'Solubility': 0.58, 'Activation Energy': 0.17},
         'Xenon':{'Diffusion Constant': 0.8E-8, 'Solubility': 0.89, 'Activation Energy': 0.17},
         'Argon':{'Diffusion Constant': 16.8E-8, 'Solubility': 0.088, 'Activation Energy': 0.17},
         'Helium':{'Diffusion Constant': 1270E-8, 'Solubility': 0.033, 'Activation Energy': 0.17}
+    },
+    'Teflon Yale':{  # http://arxiv.org/abs/1703.09144
+        'Oxygen':{'Diffusion Constant': 31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.47}, 
     },
     'Viton':{  # http://arxiv.org/abs/1703.09144
         'Nitrogen':{'Diffusion Constant': 2.2E-8, 'Solubility': 0.51, 'Activation Energy': 0.17},
@@ -42,6 +45,9 @@ System = {
         'Xenon Mass': 200000,
         'Teflon':{
                 'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15}
+        },
+        'Teflon Yale':{
+                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15}
         }
     },
     'nEXO':{
@@ -61,6 +67,7 @@ System = {
         'Teflon':{
                 'EXO-Teflon': {'Volume': 5.3E-3, 'Area': pow(5.5*2.54, 2)*2, 'Thickness': 0.15},
                 'Stock-Teflon': {'Volume': 0.01639, 'Area': pow(4*2.54, 2)*2, 'Thickness': 0.635},
+                'Stock-Teflon Thick': {'Volume': 0.093*1, 'Area': 45.6*2 + 48.64*1, 'Thickness': 2.03},
                 'Columbia-Teflon': {'Volume': 285.08, 'Area': (17.8*15.4)*2, 'Thickness': 1.04}
         }
     },
@@ -76,7 +83,7 @@ Gas = {
     'Oxygen':{'Abundance in Air': 0.21, 'Molar Mass': 32},
     'Nitrogen':{'Abundance in Air': 0.78,'Molar Mass': 28},
     'Krypton':{'Abundance in Air': 0.009, 'Molar Mass': 84},
-    'Xenon':{'Abundance in Air': 0.21, 'Molar Mass': 32},
-    'Argon':{'Abundance in Air': 0.21, 'Molar Mass': 32},
-    'Helium':{'Abundance in Air': 0.21, 'Molar Mass': 32},
+    'Xenon':{'Abundance in Air': 11.5E-6, 'Molar Mass': 136},
+    'Argon':{'Abundance in Air': 0.0093, 'Molar Mass': 40},
+    'Helium':{'Abundance in Air': 5E-6, 'Molar Mass': 4},
 }

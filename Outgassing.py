@@ -16,20 +16,29 @@ def GetImpuritiesVsTime(Data, TimeScale='Seconds'):
     InitialImpurities = Data.InitialImpurities
     for ii, (Time, DiffConstant) in enumerate(zip(Data.Time, Data.DiffConstants)): 
         if ii==0:
+
             pass 
         else:
             Time = Time - np.max(Data.Time[ii-1])
         DiffConstant = DiffConstant * DoTimeConversion(TimeScale)
         Y = SolveDiffusionEquation(Time, DiffConstant, Data.Thickness, InitialImpurities)
+        YIndex = np.where(Y<Y[0]/Data.Constraints[ii])
+        if np.shape(YIndex)[1] > 0: 
+            YIndex = YIndex[0][0]
+            Y[YIndex:] = Y[0]/Data.Constraints[ii]
+            Data.ConstraintIndex.append(YIndex)
+        else: 
+            pass 
         Impurities.append(Y)
         InitialImpurities = Y[-1]
+    
     for ii in range(1,len(Impurities)):
         Impurities[ii] = Impurities[ii] * (Impurities[ii-1][-1]/Impurities[ii][0])
     return np.array(Impurities)
 
 def SolveDiffusionEquation(Time, Diff, Thickness, Conc): 
     value = 0.0 
-    for N in range(0,100,1): 
+    for N in range(0,1000,1): 
         factor1 = 1.0/((2.0*N+1.0)**2)
         factor2 = np.exp(-(np.pi*(2.0*N+1.0)/Thickness)**2*Diff*Time)
         comp = factor1*factor2 * (Conc*8.0*Thickness)/(np.pi**2*2.0)
@@ -38,7 +47,8 @@ def SolveDiffusionEquation(Time, Diff, Thickness, Conc):
 
 def GetFlowRateVsTime(Data, Units='#', TimeScale='Seconds'): 
     FlowRate = []
-    InitialConcentration = [x[0]/(Data.Volume*1000) for x in Data.Impurities]
+    InitialConcentration = [x[0]/(Data.Volume*1E3) for x in Data.Impurities]
+    print(InitialConcentration)
     for ii, (Time, DiffConstant) in enumerate(zip(Data.Time, Data.DiffConstants)):
         if ii==0:
             pass 
@@ -46,12 +56,15 @@ def GetFlowRateVsTime(Data, Units='#', TimeScale='Seconds'):
             Time = Time - np.max(Data.Time[ii-1])
         DiffConstant = DiffConstant * DoTimeConversion(TimeScale)
         Y = GetFlowRate(Time, DiffConstant, Data.Thickness, InitialConcentration[ii], Data.Area)
+        if ii < len(Data.ConstraintIndex): 
+            YIndex = Data.ConstraintIndex[ii]
+            Y[YIndex:] = 0.0
         FlowRate.append(Y)
     if Units == '#': pass 
     if Units == 'mBar Liter': 
         for ii,x in enumerate(FlowRate):
             FlowRate[ii] = FlowRate[ii] / (Boltzmann * Data.Temp[ii]) / Avogadro
-    return np.array(FlowRate)
+    return np.asarray(FlowRate)
 
 def GetFlowRate(Time, Diff, Thickness, Conc, Area): 
     value = 0.0 
@@ -79,12 +92,11 @@ def GetInitialImpurities(Data, Units):
 
 def GetDiffTemp(Data, Temperatures): 
     DiffTemp = []
-    if len(Temperatures) == 1: 
-        Temp = Temperatures[0]
-        DiffTemp = Data.Diffusion * np.exp(Data.ActivationEnergy/Boltzmann * ((1.0/294.15) - (1.0/Temp)))
-    else:
-        for Temp in Temperatures: 
-            Diff = Data.Diffusion * np.exp(Data.ActivationEnergy/Boltzmann * ((1.0/294.15) - (1.0/Temp)))
-            DiffTemp.append(Diff)
-        DiffTemp = np.asarray(DiffTemp)
-    return DiffTemp
+    # if len(Temperatures) == 1: 
+    #     Temp = Temperatures[0]
+    #     DiffTemp = Data.Diffusion * np.exp(Data.ActivationEnergy/Boltzmann * ((1.0/294.15) - (1.0/Temp)))
+    # else:
+    for Temp in Temperatures: 
+        Diff = Data.Diffusion * np.exp(Data.ActivationEnergy/Boltzmann * ((1.0/294.15) - (1.0/Temp)))
+        DiffTemp.append(Diff)
+    return np.asarray(DiffTemp)
