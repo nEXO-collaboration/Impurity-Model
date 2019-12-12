@@ -22,7 +22,7 @@ Material = {
     'Viton':{  # http://arxiv.org/abs/1703.09144
         'Nitrogen':{'Diffusion Constant': 2.2E-8, 'Solubility': 0.51, 'Activation Energy': 0.17},
         'Oxygen':{'Diffusion Constant': 6.8E-8, 'Solubility': 0.22, 'Activation Energy': 0.17},
-        'Krypton':{'Diffusion Constant': 1.25E-8, 'Solubility': 0.23, 'Activation Energy': 0.17},
+        'Krypton':{'Diffusion Constant': 1.25E-8, 'Solubility': 0.23, 'Activation Energy': 0.17}, 
         'Xenon':{'Diffusion Constant': 1.7E-8, 'Solubility': 0.15, 'Activation Energy': 0.17},
         'Argon':{'Diffusion Constant': 4.0E-8, 'Solubility': 0.083, 'Activation Energy': 0.17},
         'Helium':{'Diffusion Constant': 436E-8, 'Solubility': 0.093, 'Activation Energy': 0.17}
@@ -37,6 +37,9 @@ Material = {
     },
     'Kapton':{
         'Oxygen':{'Diffusion Constant': 31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.17}
+    },  
+    'Kapton Yale':{
+        'Oxygen':{'Diffusion Constant': 31.4E-8, 'Solubility': 0.22, 'Activation Energy': 0.47}
     }
 }
 
@@ -44,16 +47,21 @@ System = {
     'EXO-200':{
         'Xenon Mass': 200000,
         'Teflon':{
-                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15}
+                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15},
+                'EXO-Acrylic': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 2.0}
         },
         'Teflon Yale':{
-                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15}
+                'EXO-Teflon': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 0.15},
+                'EXO-Acrylic': {'Volume': 0.693, 'Area': 9200.0, 'Thickness': 2.0}
         }
     },
     'nEXO':{
         'Xenon Mass': 5000000,
-        'Material':{
-            'Kapton':{'Volume': 0.0625, 'Area': 12500.0, 'Thickness': 0.005}
+        'Kapton':{
+            'nEXO-Kapton':{'Volume': 0.0625, 'Area': 12500.0, 'Thickness': 0.005}
+        },
+        'Kapton Yale':{
+            'nEXO-Kapton':{'Volume': 0.0625, 'Area': 12500.0, 'Thickness': 0.005}
         }
     },
     'LZ':{
