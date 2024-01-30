@@ -135,11 +135,13 @@ def DoModelling(Systems, Labels, Temperature, Time, TimeScale, Constraints):
 
         # Get the initial number of impurities from model parameters. Can define '#', 'ppm,ppb,ppt' or 'Mass' for units 
         System.InitialImpurities = Out.GetInitialImpurities(System, '#')
-
+        print(System.InitialImpurities)
         # Forward above defined labels, that will be later used for the plot legend.
         System.Labels = Labels[ii]
 
         System.Time = Time
+
+        System.Indeces = [len(x) for x in Temperature]
 
         System.Constraints = Constraints[ii]
 
@@ -180,7 +182,8 @@ if __name__ == '__main__':
     
     # Bundle above defined models together to do calculations for all of them 
     Systems = [S3, S4]
-    Systems2 = [S7]
+    Systems = [S5, S6]
+
     # Systems = [S1, S2]
 
     # Define time scale over which to calculate and plot the outgassing rate and impurity concentrations
@@ -190,13 +193,18 @@ if __name__ == '__main__':
     # Points goes from 0 to first value, first value to second value and so on. Ex: [0,10,15] gives two regions, 0-10 and 10-15
     # TimeScale defines in which units to plot the x-Axis later.
     # Time = GetTimeStamps(Points=[0,1,2,10], Spacing=0.01, TimeScale=TimeScale)
-    Time = GetTimeStamps(Points=[0, 2, 3, 20], Spacing=0.001, TimeScale=TimeScale)
+    Time = GetTimeStamps(Points=[0, 2, 20], Spacing=0.001, TimeScale=TimeScale)
+
+
 
     # Define the different temperatures for which to calculate outgassing
     T1 = np.array([293.15]*len(Time[0]))
-    T2 = np.linspace(293.15, 164, len(Time[1]))
-    T3 = np.array([164.0]*len(Time[2]))
-    Temperature = [T1, T2, T3]
+    # T2 = np.linspace(293.15, 164, len(Time[1]))
+    T3 = np.array([164.0]*len(Time[1]))
+    Temperature = [T1, T3]
+
+
+    
 
     # T1 = np.array([293.15]*len(Time[0]))
     # T1 = np.append(T1, np.linspace(293.15, 164, len(Time[1])))
@@ -215,7 +223,7 @@ if __name__ == '__main__':
 
     Labels = GetLabels(Systems, Temperature)
 
-    Constraints = [[1E4,1E6,1E6], [1E3,1E6,1E6], [1000,10,100], [1000,10,100]]
+    Constraints = [[1E3,1E6,1E6], [1E3,1E6,1E6], [1000,10,100], [1000,10,100]]
 
     # Executing all steps to get impuritie numbers and outgassing rate as a function of time 
     DoModelling(Systems, Labels, Temperature, Time, TimeScale, Constraints)
@@ -230,13 +238,23 @@ if __name__ == '__main__':
     # Systems[0].Print()
 
     # Systems.Time /= 24.0
-    PlotFlowRateVsTime(Systems, XRange=[0,20], YRange=[1E-17, 1E-1], XTicks=2, TimeScale=TimeScale, Size=(10,6))
-    # Xval = np.linspace(0,1000,100)
-    # plt.plot(Xval, [6.8E-8]*len(Xval), label='EXO-200 Steady-State Leak Rate', color='k', linewidth=2.0, linestyle='-')
-    # plt.legend(loc='lower right')
-    plt.savefig('outgassing_rate_new.pdf')
+    
+    # for System in Systems: 
+    #     Y1 = System.FlowRate[0,:len(T1)]
+    #     Y2 = System.FlowRate[0,len(T1):len(T1)+len(T2)]
+    #     Y3 = System.FlowRate[0,len(T1)+len(T2):]
+
+    #     print('one', Y1)
+    #     print('two', Y2)
+    #     print('three', Y3)
+    #     System.FlowRate = [Y1, Y2, Y3]
+    PlotFlowRateVsTime(Systems, XRange=[0,20], YRange=[1E-13, 1E-1], XTicks=2, TimeScale=TimeScale, Size=(10,6))
+    Xval = np.linspace(0,1000,100)
+    plt.plot(Xval, [4E-6]*len(Xval), label='EXO-200 Steady-State Leak Rate', color='k', linewidth=2.0, linestyle='-')
+    plt.legend(loc='upper right')
+    plt.savefig('outgassing_rate.pdf')
     import tikzplotlib
     width = 6.50127*2.54
     width = 6.0*2.54
-    tikzplotlib.save("outgassing_rate_new.tex", figurewidth='%.2fcm' % width, figureheight='%.2fcm' % (width/2.0) )
+    tikzplotlib.save("outgassing_rate.tex", figurewidth='%.2fcm' % width, figureheight='%.2fcm' % (width/2.0) )
     # plt.show()
