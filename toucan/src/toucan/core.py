@@ -1,21 +1,19 @@
-"""Module providing computing functions."""
-
-from typing import List, Union, Optional, Dict, Tuple
-import matplotlib.pyplot as plt
-import numpy as np
 import json
-
-# Constants
-IDEAL_GAS_MOLAR_VOLUME = 22.4  # liter/mol
-AVOGADRO_NUMBER = 6.022e23  # particles/mol
-BOLTZMANN_CONSTANT_EV = 8.6173303e-5  # eV/K
-BOLTZMANN_CONSTANT_L = 83.14  # mBar*Liter/(mol*K)
-GXE_DENSITY = 5.5e-3  # Kg/liter
+import numpy as np
+from typing import List, Union, Optional, Dict, Tuple
+from .utils import get_time_stamps, plot_data
+from .constants import (
+    IDEAL_GAS_MOLAR_VOLUME,
+    AVOGADRO_NUMBER,
+    BOLTZMANN_CONSTANT_EV,
+    BOLTZMANN_CONSTANT_L,
+    GXE_DENSITY,
+)
 
 
 class Outgassing_setup:
     """
-    This class represents a system with various attributes and methods.
+    This class represents a system with various attributes and methods for outgassing analysis.
 
     Attributes:
     name (str): The name of the setup.
@@ -41,10 +39,16 @@ class Outgassing_setup:
         material: Optional[str] = None,
         solute: Optional[str] = None,
         version: Optional[str] = None,
+        data_file: str = "library.json",
     ):
         # Load data from the JSON file
-        with open("library.json", "r") as file:
-            data = json.load(file)
+        try:
+            with open(data_file, "r") as file:
+                data = json.load(file)
+        except FileNotFoundError:
+            raise FileNotFoundError(
+                f"The data file '{data_file}' was not found. Please ensure it's in the current working directory or provide the correct path."
+            )
 
         self.name: str = setup
         self.material: Optional[str] = material
@@ -141,18 +145,24 @@ class Outgassing_setup:
                 if units == "ppm"
                 else 1e9 if units == "ppb" else 1e12 if units == "ppt" else 1
             )
-            self.initial_impurities /= self.xe_mass * conversion_factor
+            self.initial_impurities = (
+                impurity_mass / self.xe_mass * conversion_factor
+            )  # this is not correct
         elif units == "#":
             self.initial_impurities = (
                 impurity_mass / self.molar_mass
             ) * AVOGADRO_NUMBER
+        else:
+            raise ValueError("Unsupported unit. Use 'ppm', 'ppb', 'ppt', or '#'.")
 
     def get_impurities_vs_time(self, time: List[List[float]]) -> List[List[float]]:
         """
         Calculate the impurities over time considering diffusion constants.
         """
-        if self.diffusion_constants is None:
-            raise ValueError("Diffusion constants are not initialized.")
+        if not self.diffusion_constants:
+            raise ValueError(
+                "Diffusion constants are not initialized. Call get_diff_temp() first."
+            )
 
         impurities = []
         # Use the same time segment for all temperatures if only one timestamp
@@ -191,6 +201,9 @@ class Outgassing_setup:
         """
         Calculate the flow rate over time considering diffusion constants and constraints.
         """
+        if not impurities:
+            raise ValueError("Impurities list is empty. Calculate impurities first.")
+
         initial_concentration = [x[0] / (self.volume * 1e3) for x in impurities]
 
         flow_rates = []
@@ -227,8 +240,7 @@ class Outgassing_setup:
         initial_pumped_time: float,
     ) -> List[List[float]]:
         """
-        Calculate the flow rate over time considering diffusion constants and constraints.
-        More versatile law should be implemented from nexo outgassing paper (feb 2020) & https://doi.org/10.1016/S0042-207X(03)00035-6
+        Calculate the flow rate over time for steel considering pumping time.
         """
         if unbaked_flow_rate is None or initial_pumped_time is None:
             raise ValueError(
@@ -242,9 +254,9 @@ class Outgassing_setup:
         # Calculate flow rate for each time point
         flow_rate = [
             solve_steel_flow_rate_vs_pumping_time(
-                unbaked_flow_rate, self.area, initial_pumped_time, time
+                unbaked_flow_rate, self.area, initial_pumped_time, t
             )
-            for time in time[0]
+            for t in time[0]
         ]
 
         # Append calculated flow rate to the flow_rates attribute
@@ -293,37 +305,6 @@ class Outgassing_setup:
         return electron_lifetimes, params
 
 
-def get_time_stamps(
-    points: List[Union[int, float]],
-    spacing: Union[int, float],
-    time_scale: str = "Seconds",
-) -> List[List[float]]:
-    """
-    Generate a list of lists containing timestamps in seconds.
-    Each sublist represents the range from one point to the next,
-    incremented by the given spacing value.
-    """
-    scale_factors = {"Days": 86400, "Hours": 3600, "Seconds": 1}
-
-    if time_scale not in scale_factors:
-        raise ValueError(
-            "Unsupported time scale. Choose from 'Days', 'Hours', or 'Seconds'."
-        )
-
-    converted_points = [point * scale_factors[time_scale] for point in points]
-
-    timestamps = []
-    for start_point, end_point in zip(converted_points, converted_points[1:]):
-        current_time = start_point
-        time_segment = []
-        while current_time < end_point:
-            time_segment.append(current_time)
-            current_time += spacing * scale_factors[time_scale]
-        timestamps.append(time_segment)
-
-    return timestamps
-
-
 def solve_diffusion_equation(
     time: float, diff: float, thickness: float, conc: float
 ) -> float:
@@ -365,7 +346,6 @@ def solve_steel_flow_rate_vs_pumping_time(
     Calculate the steel flow rate for a given time.
     """
     flow_rate = unbaked_flow_rate * area * initial_pumped_time / time
-
     return flow_rate
 
 
@@ -394,77 +374,3 @@ def solve_electron_lifetime(
         return float("inf")
     else:
         return field_factor / denominator
-
-
-def plot_data(
-    fig_size: Tuple[int, int],
-    x_label: str,
-    y_label: str,
-    data_sets: List[Tuple[List[float], List[float], str]],
-    x_scale: Optional[str] = None,
-    y_scale: Optional[str] = None,
-    time_unit: str = "Seconds",
-) -> None:
-    plt.figure(figsize=fig_size)
-    plt.xlabel(x_label)
-    plt.ylabel(y_label)
-
-    if x_scale:
-        plt.xscale(x_scale)
-    if y_scale:
-        plt.yscale(y_scale)
-
-    plt.grid(which="both", linestyle="--", linewidth=0.5, color="gray")
-    plt.minorticks_on()
-
-    # Convert time to the specified unit
-    time_conversion_factor = 1
-    if time_unit == "Days":
-        time_conversion_factor = 86400  # Seconds in a day
-
-    for time_data, data, label in data_sets:
-        adjusted_time_data = [t / time_conversion_factor for t in time_data]
-        plt.plot(adjusted_time_data, data, label=label)
-
-    plt.legend()
-    plt.show()
-
-
-def XPM_electron_lifetime_fit(
-    t: float,
-    c_el: float,
-    n0: float,
-    r0: float,
-    m: float,
-    n0_error: Optional[float] = None,
-    r0_error: Optional[float] = None,
-) -> Union[float, Tuple[float, float, float]]:
-    """
-    Calculate materials test XPM fit for electron lifetime.
-    From "Screening for Electronegative Impurities".
-
-    Parameters:
-    - t (float): Time in seconds.
-    - c_el (float): Electron lifetime constant in ppb/μs.
-    - n0 (float): Initial impurity concentration in ppb.
-    - r0 (float): Total out-diffusion rate in ppb liter/sec.
-    - m (float): LXe mass in kg.
-    - n0_error (Optional[float]): Error associated with n0.
-    - r0_error (Optional[float]): Error associated with r0.
-
-    Returns:
-    - float or Tuple[float, float, float]: Main electron lifetime, and optionally
-      lower and upper bounds due to errors.
-    """
-    electron_lifetime = c_el / (n0 + r0 * GXE_DENSITY * t / m)
-
-    if n0_error is not None and r0_error is not None:
-        electron_lifetime_upper = c_el / (
-            n0 - n0_error + (r0 - r0_error) * GXE_DENSITY * t / m
-        )
-        electron_lifetime_lower = c_el / (
-            n0 + n0_error + (r0 + r0_error) * GXE_DENSITY * t / m
-        )
-        return electron_lifetime, electron_lifetime_lower, electron_lifetime_upper
-
-    return electron_lifetime
