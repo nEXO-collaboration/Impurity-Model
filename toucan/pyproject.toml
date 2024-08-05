@@ -3,10 +3,10 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "toucan-outgassing"
-version = "0.1.0"
+name = "TOUCAN"
+version = "0.1.1"
 description = "Toolkit for Outgassing Contamination Analysis (TOUCAN)"
-authors = [{name = "Your Name", email = "your.email@example.com"}]
+authors = [{name = "Antoine Amy", email = "antoine.amy@subatech.in2p3.fr"}]
 readme = "README.md"
 requires-python = ">=3.7"
 classifiers = [
