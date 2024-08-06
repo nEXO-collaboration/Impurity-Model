@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "TOUCAN"
-version = "0.1.1"
+version = "0.2.0"
 description = "Toolkit for Outgassing Contamination Analysis (TOUCAN)"
 authors = [{name = "Antoine Amy", email = "antoine.amy@subatech.in2p3.fr"}]
 readme = "README.md"
