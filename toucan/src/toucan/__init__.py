@@ -1,11 +1,11 @@
 from .setup import OutgassingSetup
 from .calculations import get_diff_temp, get_initial_impurities
 from .time_evolution import TimeEvolution
-from .utils import get_time_stamps, convert_time
+from .utils import get_time_stamps
 from .plotting import (
-    plot_outgassing_rate,
     plot_polymers,
     plot_electron_lifetime,
+    plot_metals,
 )
 from .constants import (
     IDEAL_GAS_MOLAR_VOLUME,
@@ -21,10 +21,9 @@ __all__ = [
     "get_initial_impurities",
     "TimeEvolution",
     "get_time_stamps",
-    "convert_time",
-    "plot_outgassing_rate",
     "plot_polymers",
     "plot_electron_lifetime",
+    "plot_metals",
     "IDEAL_GAS_MOLAR_VOLUME",
     "AVOGADRO_NUMBER",
     "BOLTZMANN_CONSTANT_EV",
